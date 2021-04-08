@@ -3,29 +3,26 @@
 #include "scrumbler.h"
 #include "main.h"
 
+#define INPUT "input.dat"
+#define ENCODED "encoded.dat"
+#define SCRUMBLED "scrumbled.dat"
+#define DECODED "decoded.dat"
+
 int main()
 {
-	bool retflag = 0;
-	int retval = 0;
-	//retval = testEncoder(retflag);
-	if (retflag) return retval;
-	//retval = Scrumble(retflag);
-	if (retflag) return retval;
-	retval = testDecoder(retflag);
-	if (retflag) return retval;
+	testEncoder();
+	//Scrumble();
+	//testDecoder();
 
 	return 0;
 }
 
-int Scrumble(bool& retflag)
+int Scrumble()
 {
-	retflag = true;
-
-
 	FILE* fin, * fout;
 
-	fin = fopen("encoded.dat", "rb");
-	fout = fopen("scrumbled.dat", "wb");
+	fin = fopen(ENCODED, "rb");
+	fout = fopen(SCRUMBLED, "wb");
 
 	if (fin == NULL)
 	{
@@ -42,20 +39,15 @@ int Scrumble(bool& retflag)
 
 	fclose(fin);
 	fclose(fout);
-	retflag = false;
-	return {};
+	return 0;
 }
 
-
-int testDecoder(bool& retflag)
+int testDecoder()
 {
-	retflag = true;
-
-
 	FILE* fin, * fout;
 
-	fin = fopen("result.dat", "rb");
-	fout = fopen("decoded.dat", "wb");
+	fin = fopen(SCRUMBLED, "rb");
+	fout = fopen(DECODED, "wb");
 
 	if (fin == NULL)
 	{
@@ -72,18 +64,15 @@ int testDecoder(bool& retflag)
 
 	fclose(fin);
 	fclose(fout);
-	retflag = false;
-	return {};
+	return 0;
 }
 
-int testEncoder(bool& retflag)
+int testEncoder()
 {
-	retflag = true;
-
 	FILE* fin, * fout;
 
-	fin = fopen("input.dat", "rb");
-	fout = fopen("encoded.dat", "wb");
+	fin = fopen(INPUT, "rb");
+	fout = fopen(ENCODED, "wb");
 
 	if (fin == NULL)
 	{
@@ -100,6 +89,5 @@ int testEncoder(bool& retflag)
 
 	fclose(fin);
 	fclose(fout);
-	retflag = false;
-	return {};
+	return 0;
 }

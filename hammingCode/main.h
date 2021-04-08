@@ -1,7 +1,7 @@
 #pragma once
 
-int testEncoder(bool& retflag);
+int testEncoder();
 
-int testDecoder(bool& retflag);
+int testDecoder();
 
-int Scrumble(bool& retflag);
+int Scrumble();

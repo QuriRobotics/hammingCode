@@ -2,8 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
+#include <string>
 
-#define BLOCK_SIZE 1000
+#define BLOCK_SIZE 64
+#define DBLOCK_SIZE 28
 
 bool cb(char word, int idx)
 {
@@ -47,16 +50,19 @@ void decode(char* data, char* output)
 
 int decoder(FILE* r_fifo, FILE* w_fifo, FILE* tracklog)
 {
-    char buf[BLOCK_SIZE * 2];
-    char decoded[BLOCK_SIZE];
+    std::vector<std::string> fileBuf;
+
+    std::string buf(BLOCK_SIZE, '\0');
     long s;
-    s = fread(buf, sizeof(char), BLOCK_SIZE * 2, r_fifo);
-    for (; s > 0;)
+
+    s = fread(&buf[0], sizeof(char), BLOCK_SIZE * 2, r_fifo);
+
+    while(s)
     {
-        decode(buf, decoded);
-        if (s > 1)
-            fwrite(decoded, sizeof(char), s/2, w_fifo);
-        s = fread(buf, sizeof(char), BLOCK_SIZE * 2, r_fifo);
+        //decode(buf, decoded);
+        //if (s > 1)
+        //    fwrite(decoded, sizeof(char), s/2, w_fifo);
+        s = fread(&buf[0], sizeof(char), BLOCK_SIZE, r_fifo);
     }
     return 0;
 }
