@@ -6,12 +6,11 @@
 #include <vector>
 #include <string>
 
-#define BLOCK_SIZE 64
-#define DBLOCK_SIZE 28
+#define BLOCK_SIZE 128
+#define DBLOCK_SIZE 52
+#define INDEX_OFFSET 16
 
-// int32, string(28)
-//  \|/     \|/
-//   8b  +  56b x7/4ham
+// header, int32, string(52), int32, tail
 
 bool checkBit(char word, int idx)
 {
@@ -64,32 +63,81 @@ void encode(char* data, char* output, int size)
 	}
 }
 
-std::string encodeBlock(uint32_t i, std::string data)
+std::string encodeBlock(uint32_t i, std::string data, int lastsize = DBLOCK_SIZE)
 {
 	std::string out(BLOCK_SIZE, 0x00);
+
+	std::string header(2, 0xFF);
+	std::string tail(2, 0xEE);
+
+	std::string encodedHeader(4, 0xFF);
+	std::string encodedTail(4, 0x00);
+	
+	encode(&header[0], &encodedHeader[0], 2);
+	encode(&tail[0], &encodedTail[0], 2);
 
 	char* number = (char*)&i;
 	std::string encodedNumber(8, 0x00);
 	encode(number, &encodedNumber[0], 4);
 
-	char encodedData[DBLOCK_SIZE * 2];
-	encode(&data[0], encodedData, DBLOCK_SIZE);
+	std::string encodedData(DBLOCK_SIZE * 2, 0x00);
+	encode(&data[0], &encodedData[0], lastsize);
 
-	/*for (int i = 0; i < 4; i++)
+	if (0)
 	{
-		out[i] = number[i];
+		int offset = 0;
+		for (int i = offset; i < offset + 2; i++)
+		{
+			out[i] = header[i - offset];
+		}
+		offset += 2;
+		for (int i = offset; i < offset + 4; i++)
+		{
+			out[i] = number[i - offset];
+		}
+		offset += 4;
+		for (int i = offset; i < offset + DBLOCK_SIZE; i++)
+		{
+			out[i] = data[i - offset];
+		}
+		offset += DBLOCK_SIZE;
+		for (int i = offset; i < offset + 4; i++)
+		{
+			out[i] = number[i - offset];
+		}
+		offset += 4;
+		for (int i = offset; i < offset + 2; i++)
+		{
+			out[i] = tail[i - offset];
+		}
 	}
-	for (int i = 4; i < 32; i++)
+	else
 	{
-		out[i] = data[i - 4];
-	}*/
-	for (int i = 0; i < 8; i++)
-	{
-		out[i] = encodedNumber[i];
-	}
-	for (int i = 8; i < 64; i++)
-	{
-		out[i] = encodedData[i - 8];
+		int offset = 0;
+		for (int i = offset; i < offset + 2 * 2; i++)
+		{
+			out[i] = encodedHeader[i - offset];
+		}
+		offset += 2 * 2;
+		for (int i = offset; i < offset + 4 * 2; i++)
+		{
+			out[i] = encodedNumber[i - offset];
+		}
+		offset += 4 * 2;
+		for (int i = offset; i < offset + DBLOCK_SIZE * 2; i++)
+		{
+			out[i] = encodedData[i - offset];
+		}
+		offset += DBLOCK_SIZE * 2;
+		for (int i = offset; i < offset + 4 * 2; i++)
+		{
+			out[i] = encodedNumber[i - offset];
+		}
+		offset += 4 * 2;
+		for (int i = offset; i < offset + 2 * 2; i++)
+		{
+			out[i] = encodedTail[i - offset];
+		}
 	}
 
 	return out;
@@ -103,21 +151,33 @@ int encoder(FILE* r_fifo, FILE* w_fifo)
 
 	std::string buf(DBLOCK_SIZE, '\0');
 	long s;
+	int lastsize = 0;
 
 	s = fread(&buf[0], sizeof(char), DBLOCK_SIZE, r_fifo);
 	while (s)
 	{
 		fileBuf.push_back(buf);
+		lastsize = s;
 		s = fread(&buf[0], sizeof(char), DBLOCK_SIZE, r_fifo);
 	}
 
-	std::string dBuff(BLOCK_SIZE, 0x00);
-
-	for (uint32_t i = 0; i < fileBuf.size(); i++)
+	for (int rep = 0; rep < 2; rep++)
 	{
-		dBuff = encodeBlock(i, fileBuf[i]);
+		std::string dBuff(BLOCK_SIZE, 0x00);
+		uint32_t i;
+		for (i = 0; i < fileBuf.size() - 1; i++)
+		{
+			dBuff = encodeBlock(i + INDEX_OFFSET, fileBuf[i]);
+			fwrite(&dBuff[0], sizeof(char), BLOCK_SIZE, w_fifo);
+		}
+		dBuff = encodeBlock(i + INDEX_OFFSET, fileBuf[i], lastsize);
 		fwrite(&dBuff[0], sizeof(char), BLOCK_SIZE, w_fifo);
 	}
+	/*for (uint32_t i = 0; i < 1 << 12; i++)
+	{
+		char a = i;
+		fwrite(&a, sizeof(char), 1, w_fifo);
+	}*/
 
 	return 0;
 }

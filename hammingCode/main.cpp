@@ -3,16 +3,16 @@
 #include "scrumbler.h"
 #include "main.h"
 
-#define INPUT "input.dat"
+#define INPUT "numbers.dat"
 #define ENCODED "encoded.dat"
-#define SCRUMBLED "scrumbled.dat"
+#define SCRUMBLED "encoded.dat"
 #define DECODED "decoded.dat"
 
 int main()
 {
-	testEncoder();
+	//testEncoder();
 	//Scrumble();
-	//testDecoder();
+	testDecoder();
 
 	return 0;
 }
