@@ -153,6 +153,8 @@ int encoder(FILE* r_fifo, FILE* w_fifo)
 	long s;
 	int lastsize = 0;
 
+	std::string iFile;
+
 	s = fread(&buf[0], sizeof(char), DBLOCK_SIZE, r_fifo);
 	while (s)
 	{
@@ -161,11 +163,18 @@ int encoder(FILE* r_fifo, FILE* w_fifo)
 		s = fread(&buf[0], sizeof(char), DBLOCK_SIZE, r_fifo);
 	}
 
-	for (int rep = 0; rep < 2; rep++)
+	int repCount = 1;
+	double size = fileBuf.size() * 0.125;
+	double percentage = 450 * 7.0 / (size * repCount);
+	percentage = percentage > 1 ? 1 : percentage;
+
+	printf("rep count: %d\ninitial size: %fkb\nrep file size: %fkb\npercentage: %f\nfinal file size: %fkb", repCount, size, size * repCount, percentage, size * repCount * percentage);
+
+	for (int rep = 0; rep < repCount; rep++)
 	{
 		std::string dBuff(BLOCK_SIZE, 0x00);
 		uint32_t i;
-		for (i = 0; i < fileBuf.size() - 1; i++)
+		for (i = 0; i < (fileBuf.size() - 1) * percentage; i++)
 		{
 			dBuff = encodeBlock(i + INDEX_OFFSET, fileBuf[i]);
 			fwrite(&dBuff[0], sizeof(char), BLOCK_SIZE, w_fifo);

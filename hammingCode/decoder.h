@@ -102,7 +102,7 @@ int decoder(FILE* r_fifo, FILE* w_fifo, FILE* tracklog)
                     {
                         uint32_t index = i1 - INDEX_OFFSET;
                         databuf = decodeBlock(decbuf);
-                        while (index > fileBuf.size())
+                        while (index >= fileBuf.size())
                         {
                             fileBuf.resize(fileBuf.size() * 2);
                         }
@@ -124,6 +124,11 @@ int decoder(FILE* r_fifo, FILE* w_fifo, FILE* tracklog)
     for(int i = 0; i < 1<<7; i++) fwrite("\x00", sizeof(char), 1, w_fifo);
 
     //std::string dBuff(DBLOCK_SIZE, 0x00);
+
+    /*for (int i = 0; i < fileBuf.size(); i++)
+    {
+        if(isRecieved[i])
+    }*/
 
     int idx;
     for (idx = 0; idx < maxI; idx++)

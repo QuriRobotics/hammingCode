@@ -3,7 +3,7 @@
 #include "scrumbler.h"
 #include "main.h"
 
-#define INPUT "numbers.dat"
+#define INPUT "full.dat"
 #define ENCODED "encoded.dat"
 #define SCRUMBLED "encoded.dat"
 #define DECODED "decoded.dat"
